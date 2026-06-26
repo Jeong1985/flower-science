@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>꽃의 구조 알아보기 - 지능형 과학실</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ── 리셋 ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── KOSAC 디자인 토큰 ── */
+    :root {
+      --bg-deep:    #0f2060;
+      --bg-mid:     #1a3a8f;
+      --accent:     #2563eb;
+      --accent-dark:#1d4ed8;
+      --accent-light:#dbeafe;
+      --text-main:  #1e293b;
+      --text-sub:   #475569;
+      --text-white: #ffffff;
+      --border:     #cbd5e1;
+      --nav-bg:     #2563eb;
+      --modal-header: #1e3a8a;
+      --radius-sm:  8px;
+      --radius-md:  16px;
+      --shadow:     0 4px 24px rgba(0,0,0,0.13);
+      --font:       'Noto Sans KR', sans-serif;
+      /* 꽃 테마 컬러 */
+      --green:#4CAF50; --green-d:#2E7D32;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-deep);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ══ 우주 배경 ══ */
+    .bg-space {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 15% 20%, #1a3a8f 0%, transparent 70%),
+        radial-gradient(ellipse 50% 35% at 85% 75%, #1e3a8a 0%, transparent 70%),
+        linear-gradient(160deg, #0a1640 0%, #0f2060 50%, #0a1640 100%);
+      z-index: 0;
+    }
+    .bg-space::before {
+      content: ''; position: absolute; inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 8%, #fff 100%, transparent),
+        radial-gradient(1px 1px at 30% 18%, #fff 100%, transparent),
+        radial-gradient(1.5px 1.5px at 55% 5%, #fff 100%, transparent),
+        radial-gradient(1px 1px at 75% 22%, #fff 100%, transparent),
+        radial-gradient(2px 2px at 90% 12%, #ffd700 100%, transparent),
+        radial-gradient(1.5px 1.5px at 65% 55%, #ffd700 100%, transparent),
+        radial-gradient(1px 1px at 40% 80%, #fff 100%, transparent),
+        radial-gradient(2px 2px at 15% 70%, #ffd700 100%, transparent);
+      opacity: .7;
+    }
+    .planet { position: fixed; border-radius: 50%; z-index: 0; pointer-events: none; }
+    .planet-1 { width:120px;height:120px;top:3%;left:1%;background:radial-gradient(circle at 35% 35%,#5b7ad4,#0f2060); }
+    .planet-2 { width:60px;height:60px;top:5%;right:4%;background:radial-gradient(circle at 40% 40%,#7c8fd4,#1e3070); }
+    .planet-3 { width:80px;height:80px;bottom:8%;right:2%;background:radial-gradient(circle at 35% 35%,#6d80c9,#0f2060); }
+    .clouds {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 120px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120'%3E%3Cpath fill='%23e8f0fe' fill-opacity='0.15' d='M0,80 C200,40 400,100 600,70 C800,40 1000,90 1200,60 C1350,40 1400,70 1440,60 L1440,120 L0,120Z'/%3E%3C/svg%3E") no-repeat bottom;
+      background-size: cover; z-index: 0; pointer-events: none;
+    }
+
+    #app-root { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ══ 헤더 ══ */
+    .app-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 28px;
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(4px);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+    .header-title {
+      display: flex; align-items: center; gap: 10px;
+      color: #fff; font-size: 15px; font-weight: 500;
+    }
+    .header-title .icon {
+      width: 32px; height: 32px; background: var(--accent);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .header-title .sep { opacity: .5; margin: 0 4px; }
+    .header-badge {
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+      color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px;
+    }
+
+    /* ══ 네비게이션 탭바 ══ */
+    .nav-bar {
+      background: var(--nav-bg);
+      display: flex; align-items: center; gap: 4px; padding: 0 12px;
+      flex-shrink: 0; position: relative;
+    }
+    .nav-btn {
+      background: transparent; border: none;
+      color: rgba(255,255,255,0.75); font-family: var(--font); font-size: 13.5px; font-weight: 500;
+      padding: 12px 16px; cursor: pointer; white-space: nowrap; position: relative; transition: .15s;
+    }
+    .nav-btn:hover, .nav-btn.active { color: #fff; background: rgba(255,255,255,0.12); }
+    .nav-btn.active::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 3px; background: #fff; border-radius: 2px 2px 0 0;
+    }
+    .nav-dropdown { position: relative; }
+    .nav-dropdown-menu {
+      display: none; position: absolute; top: 100%; left: 0;
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      box-shadow: var(--shadow); min-width: 150px; z-index: 100; overflow: hidden;
+    }
+    .nav-dropdown.open .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu button {
+      display: block; width: 100%; background: transparent; border: none;
+      font-family: var(--font); font-size: 13px; color: var(--text-main);
+      padding: 11px 18px; text-align: left; cursor: pointer; transition: .1s;
+    }
+    .nav-dropdown-menu button:hover { background: var(--accent-light); }
+
+    /* ══ 메인 콘텐츠 영역 ══ */
+    .content-area {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 28px 24px 60px; min-height: 0;
+    }
+    .content-area.full { padding: 0; align-items: stretch; }
+
+    /* ══ 화면 전환 ══ */
+    .screen { display: none; width: 100%; }
+    .screen.active { display: flex; }
+    .screen.active.fill { display: flex; flex-direction: column; height: 100%; }
+
+    /* ══════════════════
+       화면 1: 인트로
+    ══════════════════ */
+    .intro-screen { justify-content: center; align-items: center; flex-direction: column; min-height: 60vh; }
+    .intro-card {
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-md); padding: 56px 80px; max-width: 740px; width: 100%; text-align: center;
+    }
+    .intro-title { color: #fff; font-size: 38px; font-weight: 900; line-height: 1.25; margin-bottom: 10px; }
+    .intro-sub { color: rgba(255,255,255,0.75); font-size: 15px; margin-bottom: 32px; }
+    .btn-start {
+      background: transparent; border: 2px solid rgba(255,255,255,0.6); color: #fff;
+      font-family: var(--font); font-size: 16px; font-weight: 600;
+      padding: 12px 40px; border-radius: 40px; cursor: pointer; transition: .2s;
+    }
+    .btn-start:hover { background: rgba(255,255,255,0.12); border-color: #fff; }
+
+    /* ══════════════════
+       화면 2: 도입 (사례 제시)
+    ══════════════════ */
+    .problem-screen { flex-direction: column; align-items: center; }
+    .problem-wrapper {
+      background: #fff; border-radius: var(--radius-md);
+      width: 100%; max-width: 900px; overflow: hidden; box-shadow: var(--shadow);
+    }
+    .chatbot-hint {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 24px; background: rgba(37,99,235,0.07); border-bottom: 1px solid var(--border);
+    }
+    .chatbot-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--accent);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px;
+    }
+    .chatbot-hint p { font-size: 14px; color: var(--text-main); line-height: 1.6; }
+    .chatbot-hint p span { color: var(--accent); font-weight: 700; }
+    .problem-content { display: grid; grid-template-columns: 1fr 1.6fr; border-bottom: 1px solid var(--border); }
+    .problem-image {
+      background: #f0fdf4; display: flex; align-items: center; justify-content: center;
+      min-height: 200px; border-right: 1px solid var(--border); font-size: 72px;
+    }
+    .problem-text { padding: 24px; font-size: 14.5px; line-height: 1.85; color: var(--text-main); }
+    .problem-text p + p { margin-top: 12px; }
+    .problem-question { color: var(--accent); font-weight: 700; margin-top: 16px !important; }
+    .problem-input-row { padding: 14px 24px; }
+    .problem-input-row label { display: block; font-size: 13px; color: #64748b; margin-bottom: 6px; }
+    .problem-input-row textarea {
+      width: 100%; border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
+      padding: 12px 14px; font-family: var(--font); font-size: 14px; color: var(--text-main);
+      resize: vertical; min-height: 68px; outline: none; transition: .2s;
+    }
+    .problem-input-row textarea:focus { border-color: var(--accent); }
+    .problem-input-row textarea::placeholder { color: #94a3b8; }
+    .problem-footer { padding: 14px 24px; display: flex; justify-content: center; }
+    .btn-primary {
+      background: #fff; border: 2px solid var(--accent); color: var(--accent);
+      font-family: var(--font); font-size: 14px; font-weight: 600;
+      padding: 10px 28px; border-radius: 40px; cursor: pointer; transition: .15s;
+    }
+    .btn-primary:hover { background: var(--accent); color: #fff; }
+
+    /* ══════════════════
+       화면 3: 탐구 메뉴
+    ══════════════════ */
+    .menu-screen { flex-direction: column; align-items: center; gap: 20px; }
+    .menu-title {
+      color: #fff; font-size: 26px; font-weight: 900;
+      border: 3px solid rgba(255,255,255,0.5); padding: 8px 32px; border-radius: 4px;
+    }
+    .menu-sub { color: rgba(255,255,255,0.75); font-size: 15px; }
+    .menu-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; max-width: 900px; width: 100%; }
+    .menu-card {
+      background: #fff; border-radius: var(--radius-md); overflow: hidden;
+      box-shadow: var(--shadow); cursor: pointer; transition: .18s; border: 2px solid transparent;
+    }
+    .menu-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.2); }
+    .menu-card-preview {
+      height: 130px; display: flex; align-items: center; justify-content: center;
+      font-size: 44px; border-bottom: 1px solid var(--border);
+    }
+    .mc-1 .menu-card-preview { background: #f0fdf4; }
+    .mc-2 .menu-card-preview { background: #fdf4ff; }
+    .mc-3 .menu-card-preview { background: #eff6ff; }
+    .menu-card-body { padding: 14px 18px 18px; text-align: center; }
+    .menu-card-step {
+      display: inline-block; background: var(--accent); color: #fff;
+      font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px;
+    }
+    .mc-1 .menu-card-step { background: #16a34a; }
+    .mc-2 .menu-card-step { background: #9333ea; }
+    .mc-3 .menu-card-step { background: #2563eb; }
+    .menu-card-name { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+    .menu-card-desc { font-size: 12.5px; color: var(--text-sub); line-height: 1.6; }
+
+    /* ══════════════════
+       화면 4: 배우기 (INTRO 내용)
+    ══════════════════ */
+    .learn-screen { flex-direction: column; align-items: center; }
+    .learn-wrapper {
+      background: #fff; border-radius: var(--radius-md);
+      width: 100%; max-width: 960px; overflow: hidden; box-shadow: var(--shadow);
+    }
+    .section-header {
+      background: var(--modal-header); color: #fff;
+      font-size: 14px; font-weight: 700; padding: 10px 24px; text-align: center;
+    }
+    .learn-inner { padding: 24px; }
+
+    /* 원본 intro 스타일 재활용 */
+    .step-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; }
+    .dot { width: 11px; height: 11px; border-radius: 50%; background: #C8E6C9; transition: .3s; }
+    .dot.done { background: #81C784; }
+    .dot.active { background: #4CAF50; transform: scale(1.35); }
+    .dissect-row { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+    .dissect-svg-col { flex: 1; min-width: 260px; display: flex; justify-content: center; }
+    .dissect-info-col { flex: 1; min-width: 240px; }
+    .step-num { font-size: .85rem; color: #999; margin-bottom: 8px; }
+    .step-title { font-size: 1.5rem; font-weight: 900; margin-bottom: 10px; }
+    .step-desc { font-size: .97rem; line-height: 1.8; color: #444; margin-bottom: 14px; }
+    .step-fact {
+      background: #fff; border-left: 4px solid #4CAF50;
+      padding: 11px 14px; border-radius: 0 10px 10px 0;
+      font-size: .9rem; color: #555; margin-bottom: 18px;
+    }
+    .step-btn {
+      background: linear-gradient(135deg,#4CAF50,#2E7D32); color: #fff;
+      border: none; padding: 12px 28px; border-radius: 30px;
+      font-size: .93rem; font-weight: 700; font-family: var(--font); cursor: pointer; transition: .3s;
+    }
+    .step-btn:hover { transform: translateY(-2px); }
+    .parts-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+    .legend-item {
+      background: #fff; border-radius: 12px; padding: 10px 12px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      opacity: .35; transition: .5s; border: 2px solid transparent;
+    }
+    .legend-item.lit { opacity: 1; border-color: var(--c); }
+    .legend-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--c); flex-shrink: 0; }
+    .legend-pname { font-weight: 700; font-size: .88rem; }
+    .legend-pdesc { font-size: .73rem; color: #888; }
+    .svg-part { transition: opacity .5s, filter .5s; }
+    .svg-part.dim { opacity: .15; }
+    .svg-part.glow { filter: drop-shadow(0 0 6px rgba(0,0,0,.4)); }
+
+    /* ══════════════════
+       화면 5,6: 탐구/관찰 (Three.js)
+    ══════════════════ */
+    .explore-screen { flex-direction: column; height: 100%; }
+    .flower-bar {
+      background: #fff; padding: 10px 14px;
+      display: flex; gap: 8px; overflow-x: auto;
+      border-bottom: 1px solid #E8F5E9; flex-shrink: 0;
+    }
+    .flo-btn, .vlo-btn {
+      background: #F5F5F5; border: 3px solid transparent;
+      border-radius: 14px; padding: 8px 16px; cursor: pointer;
+      font-family: var(--font); font-size: .88rem; font-weight: 700;
+      white-space: nowrap; transition: .2s;
+    }
+    .flo-btn:hover, .vlo-btn:hover { background: #E8F5E9; border-color: #4CAF50; }
+    .flo-btn.active, .vlo-btn.active { background: #4CAF50; color: #fff; border-color: #4CAF50; }
+    .photo-strip-wrap {
+      flex-shrink: 0; background: #fff; border-bottom: 1px solid #E8F5E9; padding: 7px 12px 9px;
+    }
+    .photo-strip-label { font-size: .7rem; font-weight: 700; color: #888; margin-bottom: 5px; }
+    .photo-strip { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+    .photo-item {
+      flex-shrink: 0; width: 100px; height: 72px; border-radius: 7px; overflow: hidden;
+      cursor: pointer; border: 2px solid transparent; transition: .2s;
+    }
+    .photo-item:hover { border-color: #4CAF50; transform: scale(1.04); }
+    .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-item .photo-err { display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 1.4rem; background: #F1F8E9; }
+    .exp-main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+    #canvas-wrap { flex: 1; position: relative; background: linear-gradient(180deg,#E8F5E9,#C8E6C9); }
+    #canvas-wrap canvas { display: block; width: 100%!important; height: 100%!important; }
+    #viewer-wrap { flex: 1; position: relative; background: #1a1a2e; }
+    .canvas-hint {
+      position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,.55); color: #fff; padding: 6px 13px;
+      border-radius: 20px; font-size: .78rem; pointer-events: none; white-space: nowrap;
+    }
+    .tooltip3d {
+      position: absolute; background: rgba(0,0,0,.75); color: #fff;
+      padding: 5px 11px; border-radius: 8px; font-size: .83rem; font-weight: 700;
+      pointer-events: none; opacity: 0; transition: opacity .15s; white-space: nowrap;
+    }
+    .loading-ov {
+      position: absolute; inset: 0; background: rgba(232,245,233,.88);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10;
+    }
+    .spinner {
+      width: 48px; height: 48px; border: 5px solid #C8E6C9; border-top-color: #4CAF50;
+      border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .side-panel {
+      width: 260px; background: #fff; border-left: 1px solid #E8F5E9;
+      display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+    }
+    .sp-head { background: linear-gradient(135deg,#4CAF50,#2E7D32); padding: 13px 16px; color: #fff; }
+    .sp-head h2 { font-size: 1rem; font-weight: 900; margin-bottom: 2px; }
+    .sp-head p { font-size: .78rem; opacity: .85; }
+    .sp-info {
+      background: linear-gradient(135deg,#E8F5E9,#F1F8E9); border: 1px solid #C8E6C9;
+      border-radius: 10px; margin: 10px; padding: 11px; font-size: .8rem; color: #444; line-height: 1.55;
+    }
+    .sp-info h3 { font-size: .93rem; font-weight: 900; color: #2E7D32; margin-bottom: 4px; }
+    .parts-list { flex: 1; overflow-y: auto; padding: 0 10px 10px; }
+    .part-row {
+      background: #F8F9FA; border-radius: 10px; padding: 9px 11px;
+      margin-bottom: 7px; display: flex; align-items: center; gap: 9px; transition: .3s;
+    }
+    .part-row.gone { background: #FFF3E0; opacity: .65; }
+    .part-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .part-row h4 { font-size: .85rem; font-weight: 700; margin-bottom: 1px; }
+    .part-row p { font-size: .73rem; color: #888; }
+    .gone-badge { margin-left: auto; font-size: .68rem; color: #FF7043; font-weight: 700; white-space: nowrap; }
+    .reset-btn {
+      margin: 10px; background: linear-gradient(135deg,#FF7043,#E64A19);
+      color: #fff; border: none; padding: 10px; border-radius: 10px;
+      font-family: var(--font); font-size: .92rem; font-weight: 700; cursor: pointer; transition: .3s;
+    }
+    .reset-btn:hover { transform: translateY(-2px); }
+
+    /* ══ 사진 모달 ══ */
+    .photo-modal {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.82);
+      z-index: 500; align-items: center; justify-content: center; padding: 16px;
+    }
+    .photo-modal.open { display: flex; }
+    .photo-modal img { max-width: min(90vw,800px); max-height: 85vh; border-radius: 12px; object-fit: contain; }
+    .photo-modal-close { position: fixed; top: 16px; right: 20px; color: #fff; font-size: 2rem; cursor: pointer; background: none; border: none; }
+    .photo-modal-credit { position: fixed; bottom: 20px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,.75); font-size: .76rem; }
+
+    /* ══ 모달 (KOSAC 공통) ══ */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      z-index: 200; align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: var(--radius-md); width: 100%; max-width: 780px;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 48px rgba(0,0,0,.3);
+      display: flex; flex-direction: column;
+    }
+    .modal-header {
+      background: var(--accent); color: #fff; padding: 13px 20px;
+      font-size: 16px; font-weight: 700;
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+    .modal-close {
+      background: transparent; border: none; color: #fff; font-size: 20px;
+      cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: .15s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,.2); }
+    .modal-body { padding: 24px; flex: 1; }
+    .modal-footer { padding: 14px 24px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border); }
+    .btn-done {
+      background: var(--accent); border: none; color: #fff;
+      font-family: var(--font); font-size: 14px; font-weight: 700;
+      padding: 9px 28px; border-radius: 40px; cursor: pointer; transition: .15s;
+    }
+    .btn-done:hover { background: var(--accent-dark); }
+    .btn-confirm {
+      background: transparent; border: 2px solid var(--accent-dark); color: var(--accent-dark);
+      font-family: var(--font); font-size: 14px; font-weight: 700;
+      padding: 9px 24px; border-radius: 40px; cursor: pointer; transition: .15s;
+    }
+    .btn-confirm:hover { background: var(--accent-dark); color: #fff; }
+
+    /* 학습목표 모달 */
+    .goal-previews { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px; }
+    .goal-preview-item {
+      background: #f0fdf4; border-radius: var(--radius-sm); aspect-ratio: 4/3;
+      display: flex; align-items: center; justify-content: center; font-size: 32px; border: 1px solid #d1fae5;
+    }
+    .goal-list { display: flex; flex-direction: column; gap: 13px; }
+    .goal-item { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; color: var(--text-main); line-height: 1.6; }
+    .goal-item::before { content: '•'; color: var(--accent); font-size: 20px; line-height: 1.3; flex-shrink: 0; }
+
+    /* 진단하기 모달 */
+    .quiz-question-bar {
+      background: var(--modal-header); color: #fff; font-size: 15px; font-weight: 600;
+      padding: 13px 18px; border-radius: var(--radius-sm); margin-bottom: 22px; line-height: 1.5;
+    }
+    .ox-buttons { display: flex; justify-content: center; gap: 24px; padding: 12px 0; }
+    .ox-btn {
+      width: 130px; height: 130px; border: 3px solid var(--border); border-radius: var(--radius-md);
+      background: #f8fafc; font-size: 60px; font-weight: 900; color: var(--modal-header);
+      cursor: pointer; transition: .15s; display: flex; align-items: center; justify-content: center;
+    }
+    .ox-btn:hover { border-color: var(--accent); background: var(--accent-light); transform: scale(1.04); }
+    .ox-btn.selected-o { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
+    .ox-btn.selected-x { border-color: #dc2626; background: #fef2f2; color: #dc2626; }
+
+    /* 확인하기 모달 */
+    .matching-layout { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: start; }
+    .matching-image {
+      width: 200px; height: 200px; background: #f0fdf4; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 72px;
+    }
+    .matching-right { display: flex; flex-direction: column; gap: 12px; }
+    .matching-labels, .matching-answers { display: flex; gap: 8px; }
+    .match-box {
+      flex: 1; border: 2px solid var(--border); border-radius: var(--radius-sm);
+      min-height: 42px; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--text-main); background: #fff; cursor: pointer; transition: .15s;
+    }
+    .match-box:hover { border-color: var(--accent); }
+    .match-dots { display: flex; gap: 8px; }
+    .match-dot { flex: 1; display: flex; justify-content: center; }
+    .match-dot::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: block; }
+    .match-line { height: 18px; display: flex; gap: 8px; }
+    .match-line > div { flex: 1; display: flex; justify-content: center; }
+    .match-line > div::before { content: ''; width: 2px; height: 100%; background: var(--border); display: block; }
+
+    /* 정리하기 모달 */
+    .summary-section { border: 2px solid var(--modal-header); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 14px; }
+    .summary-title { background: var(--modal-header); color: #fff; font-size: 14px; font-weight: 700; padding: 8px 16px; }
+    .summary-body { background: var(--accent-light); padding: 14px 18px; }
+    .summary-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .summary-list li { font-size: 14px; color: var(--text-main); line-height: 1.65; padding-left: 16px; position: relative; }
+    .summary-list li::before { content: '•'; position: absolute; left: 0; color: var(--accent-dark); font-size: 15px; }
+
+    /* 창의적으로 생각하기 */
+    .creative-sub { font-size: 13px; color: var(--text-sub); margin-bottom: 14px; }
+    .creative-content { display: grid; grid-template-columns: 1fr 1.5fr; gap: 14px; margin-bottom: 14px; }
+    .creative-img { background: #f0fdf4; border-radius: var(--radius-sm); min-height: 170px; display: flex; align-items: center; justify-content: center; font-size: 56px; border: 1px solid #d1fae5; }
+    .creative-textbox { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-size: 14px; color: var(--text-main); line-height: 1.75; }
+    .creative-textbox .ct-title { font-weight: 700; color: var(--accent-dark); margin-bottom: 8px; }
+    .creative-textarea {
+      width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      padding: 12px 14px; font-family: var(--font); font-size: 14px; color: var(--text-main);
+      resize: vertical; min-height: 100px; outline: none; transition: .2s;
+    }
+    .creative-textarea:focus { border-color: var(--accent); }
+    .creative-textarea::placeholder { color: #94a3b8; }
+    .btn-download {
+      background: transparent; border: 2px solid var(--accent-dark); color: var(--accent-dark);
+      font-family: var(--font); font-size: 14px; font-weight: 700;
+      padding: 9px 22px; border-radius: 40px; cursor: pointer; transition: .15s;
+    }
+    .btn-download:hover { background: var(--accent-dark); color: #fff; }
+
+    /* ══ 반응형 ══ */
+    @media (max-width: 768px) {
+      .intro-card { padding: 32px 20px; }
+      .intro-title { font-size: 26px; }
+      .menu-cards { grid-template-columns: 1fr; max-width: 380px; }
+      .problem-content { grid-template-columns: 1fr; }
+      .matching-layout { grid-template-columns: 1fr; }
+      .creative-content { grid-template-columns: 1fr; }
+      .exp-main { flex-direction: column; }
+      .side-panel { width: 100%; border-left: none; border-top: 1px solid #E8F5E9; max-height: 200px; flex-direction: row; }
+      .sp-head { display: none; }
+      .parts-list { display: flex; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 8px; gap: 8px; flex: 1; }
+      .part-row { min-width: 140px; margin-bottom: 0; flex-shrink: 0; }
+      .reset-btn { margin: 8px; align-self: center; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 배경 장식 -->
+<div class="bg-space"></div>
+<div class="planet planet-1"></div>
+<div class="planet planet-2"></div>
+<div class="planet planet-3"></div>
+<div class="clouds"></div>
+
+<div id="app-root">
+
+  <!-- 헤더 -->
+  <header class="app-header">
+    <div class="header-title">
+      <span class="icon">🌸</span>
+      <span>꽃의 구조 알아보기</span>
+      <span class="sep">|</span>
+      <span>식물의 생활</span>
+    </div>
+    <span class="header-badge">지능형 과학실</span>
+  </header>
+
+  <!-- 내비게이션 탭바 -->
+  <nav class="nav-bar" id="mainNav" style="display:none;">
+    <button class="nav-btn" onclick="openModal('modal-goal')">학습목표</button>
+    <button class="nav-btn" onclick="openModal('modal-quiz')">진단하기</button>
+    <div class="nav-dropdown" id="exploreDropdown">
+      <button class="nav-btn" onclick="toggleDropdown()">탐구하기 ▾</button>
+      <div class="nav-dropdown-menu" id="exploreMenu">
+        <button onclick="goTo('learn'); closeDropdown()">🌸 꽃 구조 배우기</button>
+        <button onclick="goTo('explore'); closeDropdown()">🔬 3D 탐구하기</button>
+        <button onclick="goTo('viewer'); closeDropdown()">🌿 3D 관찰하기</button>
+      </div>
+    </div>
+    <button class="nav-btn" onclick="openModal('modal-check')">확인하기</button>
+    <button class="nav-btn" onclick="openModal('modal-summary')">정리하기</button>
+    <button class="nav-btn" onclick="openModal('modal-creative')">창의적으로 생각하기</button>
+    <button class="nav-btn" onclick="alert('보고서 양식을 다운로드합니다.')">보고서 양식 다운로드</button>
+    <button class="nav-btn" onclick="resetAll()">실험 다시하기</button>
+  </nav>
+
+  <!-- ══ 콘텐츠 영역 ══ -->
+  <div id="screen-intro" class="content-area" style="display:flex;">
+    <div class="intro-screen screen active" style="width:100%;">
+      <div class="intro-card">
+        <h1 class="intro-title">🌸 꽃의 구조 알아보기</h1>
+        <p class="intro-sub">정쌤의 맛있는 과학 — 꽃을 분해하며 각 부분의 역할을 탐구해요!</p>
+        <button class="btn-start" onclick="goTo('problem')">시작하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 도입 -->
+  <div id="screen-problem" class="content-area" style="display:none;">
+    <div class="problem-screen screen active" style="width:100%;">
+      <div class="problem-wrapper">
+        <div class="chatbot-hint">
+          <div class="chatbot-avatar">🤖</div>
+          <p>제시된 문제를 해결하기 위해 <span>내가 알아야 할 것은 무엇인지 생각해 봅시다.</span></p>
+        </div>
+        <div class="problem-content">
+          <div class="problem-image">🌸</div>
+          <div class="problem-text">
+            <p>봄이 되면 화단에 알록달록한 꽃들이 가득 피어요. 그런데 꽃들은 왜 이렇게 예쁜 색깔과 향기를 가지고 있을까요?</p>
+            <p>꿀벌이 꽃에 앉아서 꿀을 빠는 모습을 본 적 있나요? 꿀벌이 꽃에 오면 신기한 일이 일어난답니다. 꽃의 노란 가루(꽃가루)가 꿀벌의 다리에 묻어서 다른 꽃으로 옮겨지게 돼요.</p>
+            <p>꽃이 피고, 꽃가루받이가 일어나고, 열매가 맺히는 이 과정에는 꽃의 각 부분들이 중요한 역할을 하고 있어요.</p>
+            <p class="problem-question">꽃은 어떤 부분들로 이루어져 있고, 각 부분은 어떤 역할을 할까요?</p>
+          </div>
+        </div>
+        <div class="problem-input-row">
+          <label for="myQ">이제 나의 생각을 질문으로 기록해 보세요</label>
+          <textarea id="myQ" placeholder="꽃의 어떤 부분이 궁금한지 써보세요..."></textarea>
+        </div>
+        <div class="problem-footer">
+          <button class="btn-primary" onclick="goToMenu()">'꽃의 구조 알아보기' 시뮬레이션 시작하기 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탐구 선택 메뉴 -->
+  <div id="screen-menu" class="content-area" style="display:none;">
+    <div class="menu-screen screen active" style="width:100%;">
+      <h2 class="menu-title">꽃의 구조 알아보기</h2>
+      <p class="menu-sub">원하는 탐구활동을 선택하세요.</p>
+      <div class="menu-cards">
+        <div class="menu-card mc-1" onclick="goTo('learn')">
+          <div class="menu-card-preview">📚</div>
+          <div class="menu-card-body">
+            <span class="menu-card-step">1단계</span>
+            <p class="menu-card-name">꽃 구조 배우기</p>
+            <p class="menu-card-desc">델피늄 꽃을 단계별로 분해하며 꽃받침·꽃잎·수술·암술의 역할을 알아봐요.</p>
+          </div>
+        </div>
+        <div class="menu-card mc-2" onclick="goTo('explore')">
+          <div class="menu-card-preview">🔬</div>
+          <div class="menu-card-body">
+            <span class="menu-card-step">2단계</span>
+            <p class="menu-card-name">3D 꽃 탐구하기</p>
+            <p class="menu-card-desc">5가지 꽃을 3D로 돌려보고 부위를 클릭해서 분리해 봐요.</p>
+          </div>
+        </div>
+        <div class="menu-card mc-3" onclick="goTo('viewer')">
+          <div class="menu-card-preview">🌿</div>
+          <div class="menu-card-body">
+            <span class="menu-card-step">3단계</span>
+            <p class="menu-card-name">실제 꽃 관찰하기</p>
+            <p class="menu-card-desc">무궁화·백합·철쭉·코스모스·해바라기를 3D 모델로 관찰해요.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 배우기 (1단계: 단계별 설명) -->
+  <div id="screen-learn" class="content-area" style="display:none;">
+    <div class="learn-screen screen active" style="width:100%;">
+      <div class="learn-wrapper">
+        <div class="section-header" id="learnHeader">꽃 구조 배우기</div>
+        <div class="learn-inner">
+          <div class="step-dots" id="step-dots"></div>
+          <div class="dissect-row">
+            <div class="dissect-svg-col">
+              <svg id="del-svg" viewBox="0 0 380 430" width="100%" style="max-width:340px">
+                <line x1="190" y1="400" x2="190" y2="330" stroke="#4CAF50" stroke-width="7" stroke-linecap="round"/>
+                <ellipse cx="174" cy="360" rx="22" ry="10" fill="#66BB6A" transform="rotate(-35,174,360)"/>
+                <ellipse cx="208" cy="345" rx="22" ry="10" fill="#66BB6A" transform="rotate(35,208,345)"/>
+                <g id="g-sepal" class="svg-part">
+                  <path d="M190,325 C178,305 172,285 185,270" stroke="#388E3C" stroke-width="2" fill="#4CAF50" opacity=".9"/>
+                  <path d="M190,325 C190,300 190,280 190,265" stroke="#388E3C" stroke-width="2" fill="#4CAF50" opacity=".9"/>
+                  <path d="M190,325 C202,305 208,285 195,270" stroke="#388E3C" stroke-width="2" fill="#4CAF50" opacity=".9"/>
+                  <path d="M190,325 C174,312 162,300 162,282" stroke="#388E3C" stroke-width="2" fill="#56A83C" opacity=".85"/>
+                  <path d="M190,325 C206,312 218,300 218,282" stroke="#388E3C" stroke-width="2" fill="#56A83C" opacity=".85"/>
+                </g>
+                <g id="g-petal" class="svg-part">
+                  <path d="M190,220 C162,165 148,110 190,85 C232,110 218,165 190,220" fill="#7B1FA2"/>
+                  <path d="M190,220 C228,172 260,140 288,162 C296,198 262,225 190,220" fill="#9C27B0"/>
+                  <path d="M190,220 C238,218 268,248 258,288 C228,304 200,274 190,220" fill="#7B1FA2"/>
+                  <path d="M190,220 C142,218 112,248 122,288 C152,304 180,274 190,220" fill="#9C27B0"/>
+                  <path d="M190,220 C152,172 120,140 92,162 C84,198 118,225 190,220" fill="#7B1FA2"/>
+                  <text x="52" y="135" fill="#6A1B9A" font-size="15" font-weight="700" font-family="Noto Sans KR,sans-serif">꽃잎</text>
+                  <line x1="77" y1="140" x2="115" y2="158" stroke="#6A1B9A" stroke-width="1.5" marker-end="url(#arr)"/>
+                </g>
+                <g id="g-inner" class="svg-part">
+                  <path d="M190,220 C178,203 174,180 190,168 C206,180 202,203 190,220" fill="#4A148C"/>
+                  <path d="M190,220 C206,205 222,196 226,210 C222,222 207,222 190,220" fill="#4A148C"/>
+                  <path d="M190,220 C177,232 165,236 160,224 C158,211 172,206 190,220" fill="#4A148C"/>
+                </g>
+                <g id="g-stamen" class="svg-part">
+                  <line x1="190" y1="220" x2="183" y2="196" stroke="#FFC107" stroke-width="2.5"/>
+                  <circle cx="183" cy="193" r="5" fill="#FF8F00"/>
+                  <line x1="190" y1="220" x2="200" y2="197" stroke="#FFC107" stroke-width="2.5"/>
+                  <circle cx="200" cy="194" r="5" fill="#FF8F00"/>
+                  <line x1="190" y1="220" x2="207" y2="207" stroke="#FFC107" stroke-width="2.5"/>
+                  <circle cx="207" cy="204" r="5" fill="#FF8F00"/>
+                  <line x1="190" y1="220" x2="209" y2="219" stroke="#FFC107" stroke-width="2.5"/>
+                  <circle cx="210" cy="217" r="5" fill="#FF8F00"/>
+                  <line x1="190" y1="220" x2="174" y2="208" stroke="#FFC107" stroke-width="2.5"/>
+                  <circle cx="173" cy="205" r="5" fill="#FF8F00"/>
+                  <line x1="190" y1="220" x2="173" y2="220" stroke="#FFC107" stroke-width="2.5"/>
+                  <circle cx="171" cy="219" r="5" fill="#FF8F00"/>
+                  <text x="225" y="198" fill="#E65100" font-size="15" font-weight="700" font-family="Noto Sans KR,sans-serif">수술</text>
+                  <line x1="223" y1="200" x2="212" y2="206" stroke="#E65100" stroke-width="1.5" marker-end="url(#arr)"/>
+                </g>
+                <g id="g-pistil" class="svg-part">
+                  <line x1="190" y1="228" x2="190" y2="200" stroke="#E91E63" stroke-width="3.5"/>
+                  <circle cx="190" cy="197" r="8" fill="#E91E63"/>
+                  <text x="136" y="238" fill="#880E4F" font-size="15" font-weight="700" font-family="Noto Sans KR,sans-serif">암술</text>
+                  <line x1="156" y1="233" x2="183" y2="225" stroke="#880E4F" stroke-width="1.5" marker-end="url(#arr)"/>
+                </g>
+                <g id="g-sepal-label" class="svg-part">
+                  <text x="222" y="310" fill="#2E7D32" font-size="15" font-weight="700" font-family="Noto Sans KR,sans-serif">꽃받침</text>
+                  <line x1="220" y1="307" x2="208" y2="298" stroke="#2E7D32" stroke-width="1.5" marker-end="url(#arr)"/>
+                </g>
+                <defs>
+                  <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                    <path d="M0,0 L6,3 L0,6 Z" fill="#888"/>
+                  </marker>
+                </defs>
+              </svg>
+            </div>
+            <div class="dissect-info-col">
+              <p class="step-num" id="step-num">1 / 5 단계</p>
+              <h2 class="step-title" id="step-title">🌸 델피늄 꽃이에요</h2>
+              <p class="step-desc" id="step-desc"></p>
+              <div class="step-fact" id="step-fact"></div>
+              <button class="step-btn" id="step-btn" onclick="nextStep()">다음 →</button>
+              <div class="parts-legend">
+                <div class="legend-item" id="leg-sepal" style="--c:#4CAF50">
+                  <div class="legend-dot"></div>
+                  <div><div class="legend-pname">꽃받침</div><div class="legend-pdesc">꽃을 보호해요</div></div>
+                </div>
+                <div class="legend-item" id="leg-petal" style="--c:#9C27B0">
+                  <div class="legend-dot"></div>
+                  <div><div class="legend-pname">꽃잎</div><div class="legend-pdesc">곤충을 불러요</div></div>
+                </div>
+                <div class="legend-item" id="leg-stamen" style="--c:#FFC107">
+                  <div class="legend-dot"></div>
+                  <div><div class="legend-pname">수술</div><div class="legend-pdesc">꽃가루를 만들어요</div></div>
+                </div>
+                <div class="legend-item" id="leg-pistil" style="--c:#E91E63">
+                  <div class="legend-dot"></div>
+                  <div><div class="legend-pname">암술</div><div class="legend-pdesc">씨앗을 만들어요</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D 탐구 (2단계) -->
+  <div id="screen-explore" class="content-area full" style="display:none; flex-direction:column;">
+    <div class="flower-bar">
+      <button class="flo-btn active" data-flo="mugunghwa" onclick="selectFlower('mugunghwa')">🌺 무궁화</button>
+      <button class="flo-btn" data-flo="lily" onclick="selectFlower('lily')">🌷 백합</button>
+      <button class="flo-btn" data-flo="azalea" onclick="selectFlower('azalea')">🌸 철쭉</button>
+      <button class="flo-btn" data-flo="cosmos" onclick="selectFlower('cosmos')">💐 코스모스</button>
+      <button class="flo-btn" data-flo="sunflower" onclick="selectFlower('sunflower')">🌻 해바라기</button>
+    </div>
+    <div class="photo-strip-wrap">
+      <div class="photo-strip-label">📷 실제 사진 (클릭하면 크게 볼 수 있어요)</div>
+      <div class="photo-strip" id="photo-strip"></div>
+    </div>
+    <div class="exp-main" style="flex:1;min-height:0;">
+      <div id="canvas-wrap">
+        <div class="loading-ov" id="loading-ov">
+          <div class="spinner"></div>
+          <p style="color:#4CAF50;font-weight:700">꽃을 불러오는 중...</p>
+        </div>
+        <div class="canvas-hint">🖱️ 드래그: 회전 &nbsp;|&nbsp; 스크롤: 확대축소 &nbsp;|&nbsp; 클릭: 부위 분리</div>
+        <div class="tooltip3d" id="tooltip3d"></div>
+      </div>
+      <div class="side-panel">
+        <div class="sp-head">
+          <h2 id="sp-flower-name">🌺 무궁화</h2>
+          <p>부위를 클릭하면 분리돼요!</p>
+        </div>
+        <div class="sp-info" id="sp-info"></div>
+        <div class="parts-list" id="parts-list"></div>
+        <button class="reset-btn" onclick="resetFlower()">🔄 원래대로</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D 관찰 (3단계) -->
+  <div id="screen-viewer" class="content-area full" style="display:none; flex-direction:column;">
+    <div class="flower-bar">
+      <button class="vlo-btn active" data-vlo="mugunghwa" onclick="selectViewer('mugunghwa')">🌺 무궁화</button>
+      <button class="vlo-btn" data-vlo="lily" onclick="selectViewer('lily')">🌷 백합</button>
+      <button class="vlo-btn" data-vlo="azalea" onclick="selectViewer('azalea')">🌸 철쭉</button>
+      <button class="vlo-btn" data-vlo="cosmos" onclick="selectViewer('cosmos')">💐 코스모스</button>
+      <button class="vlo-btn" data-vlo="sunflower" onclick="selectViewer('sunflower')">🌻 해바라기</button>
+    </div>
+    <div id="viewer-wrap" style="flex:1;position:relative;background:#1a1a2e;">
+      <div class="loading-ov" id="viewer-loading">
+        <div class="spinner"></div>
+        <p style="color:#4CAF50;font-weight:700">모델을 불러오는 중...</p>
+      </div>
+      <div class="canvas-hint">🖱️ 드래그: 회전 &nbsp;|&nbsp; 스크롤: 확대축소 &nbsp;|&nbsp; 두 손가락: 이동</div>
+    </div>
+  </div>
+
+</div><!-- /#app-root -->
+
+<!-- 사진 모달 -->
+<div class="photo-modal" id="photo-modal" onclick="closePhotoModal()">
+  <button class="photo-modal-close" onclick="closePhotoModal()">✕</button>
+  <img id="photo-modal-img" src="" alt="">
+  <div class="photo-modal-credit">사진 출처: Wikimedia Commons (CC 라이선스)</div>
+</div>
+
+<!-- ══ KOSAC 모달들 ══ -->
+
+<!-- 학습목표 -->
+<div class="modal-overlay" id="modal-goal">
+  <div class="modal">
+    <div class="modal-header">학습목표 <button class="modal-close" onclick="closeModal('modal-goal')">×</button></div>
+    <div class="modal-body">
+      <div class="goal-previews">
+        <div class="goal-preview-item">🌸</div>
+        <div class="goal-preview-item">🔬</div>
+        <div class="goal-preview-item">🌺</div>
+      </div>
+      <div class="goal-list">
+        <div class="goal-item">꽃을 구성하는 주요 부분(꽃받침, 꽃잎, 수술, 암술)을 확인하고, 각 부분이 담당하는 기능을 설명할 수 있다.</div>
+        <div class="goal-item">꽃의 구조와 꽃가루받이(수분)의 관계를 이해하고, 곤충이 수분에 미치는 영향을 설명할 수 있다.</div>
+        <div class="goal-item">다양한 꽃의 구조를 비교하여 공통점과 차이점을 찾아 정리할 수 있다.</div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-done" onclick="closeModal('modal-goal')">닫기</button></div>
+  </div>
+</div>
+
+<!-- 진단하기 -->
+<div class="modal-overlay" id="modal-quiz">
+  <div class="modal">
+    <div class="modal-header">진단하기 <button class="modal-close" onclick="closeModal('modal-quiz')">×</button></div>
+    <div class="modal-body">
+      <div class="quiz-question-bar" id="quizQ">1. 꽃의 암술은 꽃가루를 만드는 역할을 한다.</div>
+      <div class="ox-buttons">
+        <button class="ox-btn" id="btnO" onclick="selectOX('O')">O</button>
+        <button class="ox-btn" id="btnX" onclick="selectOX('X')">X</button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-confirm" onclick="checkOX()">정답 확인</button></div>
+  </div>
+</div>
+
+<!-- 확인하기 -->
+<div class="modal-overlay" id="modal-check">
+  <div class="modal">
+    <div class="modal-header">확인하기 <button class="modal-close" onclick="closeModal('modal-check')">×</button></div>
+    <div class="modal-body">
+      <div class="quiz-question-bar">1. 꽃의 구조 그림에서 A~D의 명칭을 알맞게 연결하시오.</div>
+      <div class="matching-layout">
+        <div class="matching-image">🌸</div>
+        <div class="matching-right">
+          <div class="matching-labels">
+            <div class="match-box">A<br><small>꽃잎</small></div>
+            <div class="match-box">B<br><small>꽃받침</small></div>
+            <div class="match-box">C<br><small>수술</small></div>
+            <div class="match-box">D<br><small>암술</small></div>
+          </div>
+          <div class="match-dots">
+            <div class="match-dot"></div><div class="match-dot"></div><div class="match-dot"></div><div class="match-dot"></div>
+          </div>
+          <div class="match-line"><div></div><div></div><div></div><div></div></div>
+          <div class="match-dots">
+            <div class="match-dot"></div><div class="match-dot"></div><div class="match-dot"></div><div class="match-dot"></div>
+          </div>
+          <div class="matching-answers">
+            <div class="match-box">곤충을<br>불러요</div>
+            <div class="match-box">꽃을<br>보호해요</div>
+            <div class="match-box">꽃가루<br>만들어요</div>
+            <div class="match-box">씨앗을<br>만들어요</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-confirm" onclick="alert('정답을 확인합니다.')">정답 확인</button></div>
+  </div>
+</div>
+
+<!-- 정리하기 -->
+<div class="modal-overlay" id="modal-summary">
+  <div class="modal">
+    <div class="modal-header">정리하기 <button class="modal-close" onclick="closeModal('modal-summary')">×</button></div>
+    <div class="modal-body">
+      <div class="summary-section">
+        <div class="summary-title">꽃의 구조와 기능</div>
+        <div class="summary-body">
+          <ul class="summary-list">
+            <li>꽃은 꽃받침, 꽃잎, 수술, 암술로 이루어져 있다.</li>
+            <li>꽃받침은 꽃이 봉오리일 때 꽃잎을 감싸서 보호한다.</li>
+            <li>꽃잎은 화려한 색깔과 향기로 곤충을 유인한다.</li>
+            <li>수술의 꽃밥에서 꽃가루가 만들어진다.</li>
+            <li>암술머리에 꽃가루가 닿으면 수분이 일어나고 씨앗이 만들어진다.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="summary-section">
+        <div class="summary-title">꽃가루받이(수분)</div>
+        <div class="summary-body">
+          <ul class="summary-list">
+            <li>수분이란 꽃가루가 암술머리로 옮겨지는 과정이다.</li>
+            <li>곤충(꿀벌, 나비), 바람, 새 등이 꽃가루를 옮기는 역할을 한다.</li>
+            <li>수분 후 밑씨가 씨앗으로, 씨방이 열매로 자란다.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-done" onclick="closeModal('modal-summary')">완료</button></div>
+  </div>
+</div>
+
+<!-- 창의적으로 생각하기 -->
+<div class="modal-overlay" id="modal-creative">
+  <div class="modal">
+    <div class="modal-header">창의적으로 생각하기 <button class="modal-close" onclick="closeModal('modal-creative')">×</button></div>
+    <div class="modal-body">
+      <p class="creative-sub">∞ 내 생각을 좀 더 넓혀볼까요?</p>
+      <div class="creative-content">
+        <div class="creative-img">🐝</div>
+        <div class="creative-textbox">
+          <p class="ct-title">'꿀벌이 사라지면 어떻게 될까?'</p>
+          <p>전 세계 꽃식물의 약 80%는 곤충에 의해 수분이 이루어져요. 그 중에서도 꿀벌은 가장 중요한 수분 매개자예요. 최근 기후변화와 농약 사용으로 꿀벌의 수가 크게 줄고 있어요. 꿀벌이 사라지면 우리가 먹는 과일, 채소, 견과류의 대부분이 열매를 맺지 못하게 된답니다.</p>
+        </div>
+      </div>
+      <label for="creativeAns" style="display:block;font-size:13px;color:#64748b;margin-bottom:6px;">이곳을 눌러 답변을 작성해 보세요.</label>
+      <textarea class="creative-textarea" id="creativeAns" placeholder="꿀벌이 사라지면 어떤 일이 일어날지, 또 우리가 무엇을 할 수 있을지 자유롭게 써보세요..."></textarea>
+    </div>
+    <div class="modal-footer"><button class="btn-download" onclick="dlCreative()">다운로드</button></div>
+  </div>
+</div>
+
+<!-- KOSAC JS -->
+<script>
+const SCREENS = ['intro','problem','menu','learn','explore','viewer'];
+let threeReady=false, vReady=false;
+
+function goTo(name){
+  SCREENS.forEach(s=>{
+    const el=document.getElementById('screen-'+s);
+    if(el) el.style.display='none';
+  });
+  const target=document.getElementById('screen-'+name);
+  if(target){
+    if(['explore','viewer'].includes(name)){
+      target.style.display='flex';
+    } else {
+      target.style.display='flex';
+    }
+  }
+  const nav=document.getElementById('mainNav');
+  if(nav && name!=='intro') nav.style.display='flex';
+  if(name==='explore' && !threeReady) setTimeout(initThree,80);
+  if(name==='viewer' && !vReady) setTimeout(()=>{initViewer();loadViewerModel('mugunghwa');},80);
+}
+
+function goToMenu(){ goTo('menu'); }
+function resetAll(){
+  if(confirm('처음부터 다시 시작할까요?')){
+    document.querySelectorAll('textarea,input[type="checkbox"]').forEach(el=>{
+      if(el.tagName==='TEXTAREA') el.value=''; else el.checked=false;
+    });
+    document.getElementById('mainNav').style.display='none';
+    SCREENS.forEach(s=>{ const el=document.getElementById('screen-'+s); if(el) el.style.display='none'; });
+    document.getElementById('screen-intro').style.display='flex';
+  }
+}
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+function toggleDropdown(){ document.getElementById('exploreDropdown').classList.toggle('open'); }
+function closeDropdown(){ document.getElementById('exploreDropdown').classList.remove('open'); }
+document.addEventListener('click',e=>{ if(!e.target.closest('#exploreDropdown')) closeDropdown(); });
+let oxSel=null;
+function selectOX(v){ oxSel=v; document.getElementById('btnO').className='ox-btn'+(v==='O'?' selected-o':''); document.getElementById('btnX').className='ox-btn'+(v==='X'?' selected-x':''); }
+function checkOX(){ if(!oxSel){alert('O 또는 X를 선택하세요.');return;} alert(oxSel==='X'?'정답! 꽃가루를 만드는 것은 수술이에요.':' 암술은 씨앗을 만들어요. 꽃가루를 만드는 것은 수술이에요.'); }
+function dlCreative(){ const t=document.getElementById('creativeAns').value; if(!t.trim()){alert('답변을 먼저 작성해 주세요.');return;} const b=new Blob([t],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='창의적으로_생각하기.txt'; a.click(); }
+</script>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// ───────────────────────────────────────────────
+//  INTRO LOGIC
+// ───────────────────────────────────────────────
+const STEPS = [
+  {
+    title:'🌸 델피늄 꽃이에요',
+    desc:'이 꽃은 <strong>델피늄</strong>이에요. 꽃집이나 화단에서 볼 수 있는 파란색·보라색 꽃이에요.<br><br>꽃에는 각각 다른 역할을 하는 여러 부분이 있어요. 하나씩 알아볼까요?',
+    fact:'💡 <strong>알아두기:</strong> 꽃의 구조를 이해하면 꽃이 어떻게 씨앗을 만드는지 알 수 있어요!',
+    highlight:null, leg:[], btn:'다음 →'
+  },
+  {
+    title:'🟢 꽃받침',
+    desc:'<strong>꽃받침</strong>은 꽃의 맨 아래쪽에 있는 초록색 잎 모양의 부분이에요.<br><br>꽃이 봉오리일 때 꽃잎을 감싸서 <strong>보호</strong>해 주고, 꽃이 핀 후에는 꽃을 받쳐줘요.',
+    fact:'💡 델피늄은 꽃받침이 꽃잎처럼 화려한 보라색이에요. 곤충을 끌어들이기 위해 색이 진화했어요!',
+    highlight:'sepal', leg:['leg-sepal'], btn:'다음 →'
+  },
+  {
+    title:'💜 꽃잎',
+    desc:'<strong>꽃잎</strong>은 꽃에서 가장 화려한 부분이에요. 예쁜 색깔과 향기로 나비·꿀벌 같은 곤충을 불러들여요.<br><br>곤충이 꽃에 오면 <strong>꽃가루받이(수분)</strong>가 일어나요!',
+    fact:'💡 꿀벌은 파란색·보라색을 특히 잘 봐요. 델피늄이 보라색인 이유가 바로 이 때문이에요!',
+    highlight:'petal', leg:['leg-sepal','leg-petal'], btn:'다음 →'
+  },
+  {
+    title:'🟡 수술',
+    desc:'<strong>수술</strong>은 꽃 중심부에 있는 기다란 부분들이에요. 끝의 <strong>꽃밥</strong>에서 노란 <strong>꽃가루(화분)</strong>를 만들어요.<br><br>꽃가루가 암술에 닿으면 씨앗이 만들어지기 시작해요!',
+    fact:'💡 꿀벌의 몸에 꽃가루가 묻어서 다른 꽃으로 옮겨져요. 이것을 <strong>수분(꽃가루받이)</strong>이라고 해요.',
+    highlight:'stamen', leg:['leg-sepal','leg-petal','leg-stamen'], btn:'다음 →'
+  },
+  {
+    title:'🩷 암술',
+    desc:'<strong>암술</strong>은 꽃의 가장 중심에 있는 부분이에요. 꽃가루가 <strong>암술머리</strong>에 닿으면 수정이 일어나 <strong>씨앗</strong>이 만들어져요.<br><br>씨앗이 땅에 떨어지면 새로운 꽃이 피어나요!',
+    fact:'💡 암술 안에는 <strong>밑씨</strong>가 들어있어요. 수분 후 밑씨가 씨앗으로 자라고, 씨방은 열매가 돼요.',
+    highlight:'pistil', leg:['leg-sepal','leg-petal','leg-stamen','leg-pistil'], btn:'탐구하러 가기! 🔬'
+  }
+];
+
+let curStep = 0;
+
+function buildDots(){
+  const el = document.getElementById('step-dots');
+  el.innerHTML = STEPS.map((_,i)=>`<div class="dot"></div>`).join('');
+}
+
+function applyStep(){
+  const s = STEPS[curStep];
+  document.getElementById('step-num').textContent = `${curStep+1} / ${STEPS.length} 단계`;
+  document.getElementById('step-title').innerHTML = s.title;
+  document.getElementById('step-desc').innerHTML = s.desc;
+  document.getElementById('step-fact').innerHTML = s.fact;
+  document.getElementById('step-btn').textContent = s.btn;
+
+  // dots
+  document.querySelectorAll('.dot').forEach((d,i)=>{
+    d.className='dot'+(i<curStep?' done':i===curStep?' active':'');
+  });
+
+  // SVG parts
+  const svgIds = ['g-sepal','g-sepal-label','g-petal','g-inner','g-stamen','g-pistil'];
+  const hlMap = {
+    sepal:['g-sepal','g-sepal-label'],
+    petal:['g-petal','g-inner'],
+    stamen:['g-stamen'],
+    pistil:['g-pistil']
+  };
+  svgIds.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('dim','glow');
+    if(s.highlight){
+      const hl = hlMap[s.highlight]||[];
+      hl.includes(id) ? el.classList.add('glow') : el.classList.add('dim');
+    }
+  });
+
+  // legend
+  ['leg-sepal','leg-petal','leg-stamen','leg-pistil'].forEach(id=>{
+    document.getElementById(id)?.classList.toggle('lit', s.leg.includes(id));
+  });
+}
+
+window.nextStep = function(){
+  if(curStep < STEPS.length-1){ curStep++; applyStep(); }
+  else { showSection('explorer'); }
+};
+
+buildDots();
+applyStep();
+
+// ───────────────────────────────────────────────
+//  SECTION SWITCHING
+// ───────────────────────────────────────────────
+window.showSection = function(name){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(name+'-section').classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const idx = name==='intro'?0: name==='viewer'?1:2;
+  tabs[idx].classList.add('active');
+  if(name==='explorer'){
+    if(!threeReady) setTimeout(initThree, 80);
+    else onResize();
+  }
+  if(name==='viewer'){
+    if(!vReady) setTimeout(()=>{ initViewer(); loadViewerModel('mugunghwa'); }, 80);
+  }
+};
+
+// ───────────────────────────────────────────────
+//  THREE.JS SETUP
+// ───────────────────────────────────────────────
+let scene, camera, renderer, controls, raycaster, mouse;
+let flowerGroup = null, threeReady = false;
+let anims = [], removed = [];
+
+const FLOWERS = {
+  mugunghwa:{
+    name:'무궁화', emoji:'🌺', sci:'Hibiscus syriacus',
+    info:'우리나라의 국화예요. 7~9월에 피며 학교 화단에서 자주 볼 수 있어요.',
+    petals:5, petalCol:0xE91E63, petalCol2:0xF48FB1, petalW:1.3, petalH:1.9, spread:0.25, shape:'round',
+    sepals:5,
+    stamens:25, stamenCol:0xFFF176, stamenR:0.28, stamenH:1.4, stamenType:'column',
+    pistilH:1.7, pistilCol:0xAD1457, stigmaCol:0xE91E63,
+    diskCol:null,
+    parts:[
+      {type:'petal',name:'꽃잎 (5장)',desc:'분홍색 꽃잎, 중심에 붉은 무늬가 있어요.',icon:'💜',bg:'#FCE4EC'},
+      {type:'sepal',name:'꽃받침',desc:'꽃을 받쳐주는 초록색 부분이에요.',icon:'🟢',bg:'#E8F5E9'},
+      {type:'stamen',name:'수술',desc:'꽃가루를 만드는 노란 수술통이에요.',icon:'🟡',bg:'#FFFDE7'},
+      {type:'pistil',name:'암술',desc:'씨앗을 만드는 중심 부분이에요.',icon:'🩷',bg:'#FCE4EC'}
+    ]
+  },
+  lily:{
+    name:'백합', emoji:'🌷', sci:'Lilium',
+    info:'순결함의 상징이에요. 크고 향기로운 꽃으로 꽃집에서 자주 볼 수 있어요.',
+    petals:6, petalCol:0xFFFDE7, petalCol2:0xFFF9C4, petalW:1.0, petalH:2.2, spread:0.35, shape:'elongated',
+    sepals:0,
+    stamens:6, stamenCol:0xFF8F00, stamenR:0.3, stamenH:0.8, stamenType:'normal',
+    pistilH:1.1, pistilCol:0xA5D6A7, stigmaCol:0x66BB6A, stigmaLobes:true,
+    diskCol:null,
+    parts:[
+      {type:'petal',name:'꽃잎 (6장)',desc:'크고 흰색 꽃잎이에요.',icon:'🤍',bg:'#FFFDE7'},
+      {type:'stamen',name:'수술 (6개)',desc:'주황색 꽃밥이 달려있어요.',icon:'🟡',bg:'#FFFDE7'},
+      {type:'pistil',name:'암술',desc:'3갈래 암술머리가 특징이에요.',icon:'🩷',bg:'#E8F5E9'}
+    ]
+  },
+  azalea:{
+    name:'철쭉', emoji:'🌸', sci:'Rhododendron schlippenbachii',
+    info:'봄에 산과 화단을 붉게 물들여요. 우리나라 대표 봄꽃이에요.',
+    petals:5, petalCol:0xFF80AB, petalCol2:0xF48FB1, petalW:1.4, petalH:1.7, spread:0.3, shape:'wide',
+    sepals:5,
+    stamens:10, stamenCol:0xFFF176, stamenR:0.45, stamenH:0.9, stamenType:'spread',
+    pistilH:1.1, pistilCol:0xF48FB1, stigmaCol:0xE91E63,
+    diskCol:null,
+    parts:[
+      {type:'petal',name:'꽃잎 (5장)',desc:'연분홍 꽃잎, 위쪽에 점무늬가 있어요.',icon:'🩷',bg:'#FCE4EC'},
+      {type:'sepal',name:'꽃받침',desc:'작고 초록색인 꽃받침이에요.',icon:'🟢',bg:'#E8F5E9'},
+      {type:'stamen',name:'수술 (10개)',desc:'앞으로 길게 뻗어있어요.',icon:'🟡',bg:'#FFFDE7'},
+      {type:'pistil',name:'암술',desc:'수술보다 더 길게 뻗어있어요.',icon:'🩷',bg:'#FCE4EC'}
+    ]
+  },
+  cosmos:{
+    name:'코스모스', emoji:'💐', sci:'Cosmos bipinnatus',
+    info:'가을 들판을 수놓는 코스모스예요. 학교 화단에서 가장 많이 볼 수 있어요.',
+    petals:8, petalCol:0xF48FB1, petalCol2:0xFFFFFF, petalW:0.7, petalH:1.9, spread:0.08, shape:'narrow',
+    sepals:8,
+    stamens:0, stamenCol:0xFFEB3B, stamenR:0, stamenH:0, stamenType:'disk',
+    pistilH:0.35, pistilCol:0xFF8F00, stigmaCol:0xFF6F00,
+    diskCol:0xFFB300, diskR:0.75,
+    parts:[
+      {type:'petal',name:'혀꽃 (8장)',desc:'바깥쪽 길쭉한 꽃잎이에요.',icon:'🩷',bg:'#FCE4EC'},
+      {type:'sepal',name:'꽃받침',desc:'두 겹으로 된 특이한 꽃받침이에요.',icon:'🟢',bg:'#E8F5E9'},
+      {type:'stamen',name:'관상화',desc:'가운데 노란 통꽃들이에요.',icon:'🟡',bg:'#FFFDE7'},
+      {type:'pistil',name:'암술',desc:'통꽃 속에 있는 암술이에요.',icon:'🩷',bg:'#FCE4EC'}
+    ]
+  },
+  sunflower:{
+    name:'해바라기', emoji:'🌻', sci:'Helianthus annuus',
+    info:'태양을 향해 고개를 돌리는 꽃이에요. 학교 화단에서 쉽게 볼 수 있어요.',
+    petals:18, petalCol:0xFFD54F, petalCol2:0xFFB300, petalW:0.55, petalH:2.1, spread:0.06, shape:'ray',
+    sepals:18,
+    stamens:0, stamenCol:0x795548, stamenR:0, stamenH:0, stamenType:'disk',
+    pistilH:0.5, pistilCol:0xFF8F00, stigmaCol:0xFFB300,
+    diskCol:0x5D4037, diskR:1.1,
+    parts:[
+      {type:'petal',name:'혀꽃 (18장)',desc:'바깥쪽의 노란 꽃잎이에요.',icon:'💛',bg:'#FFFDE7'},
+      {type:'sepal',name:'꽃받침',desc:'단단한 초록색 꽃받침이에요.',icon:'🟢',bg:'#E8F5E9'},
+      {type:'stamen',name:'관상화',desc:'가운데 수백 개의 작은 꽃들이에요.',icon:'🟫',bg:'#EFEBE9'},
+      {type:'pistil',name:'암술',desc:'각 관상화 속에 있는 암술이에요.',icon:'🩷',bg:'#FCE4EC'}
+    ]
+  }
+};
+
+// ── TEXTURE GENERATION ──
+function sRng(seed){ let s=seed; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+function clamp255(v){ return Math.max(0,Math.min(255,v)); }
+
+const PETAL_CFG = {
+  mugunghwa:{
+    stops:[[0,'#FFFFFF'],[.15,'#FFE4EE'],[.45,'#FFAACB'],[.72,'#F06292'],[.9,'#E91E63'],[1,'#880E4F']],
+    vein:'rgba(183,28,28,.13)',glow:true,spots:false,
+    flush:{col:'#AD1457',r:.22}
+  },
+  lily:{
+    stops:[[0,'#FFFFFF'],[.25,'#FFFDE7'],[.55,'#FFF9C4'],[.82,'#FFF176'],[1,'#F9A825']],
+    vein:'rgba(120,90,0,.11)',glow:true,spots:true,
+    spotCol:'rgba(90,40,0,.6)',spotY:[.52,.85],flush:null
+  },
+  azalea:{
+    stops:[[0,'#FFEBF0'],[.2,'#FFB3CB'],[.5,'#FF80AB'],[.78,'#F06292'],[1,'#C2185B']],
+    vein:'rgba(180,0,80,.12)',glow:false,spots:true,
+    spotCol:'rgba(150,0,60,.32)',spotY:[.5,.78],flush:null
+  },
+  cosmos:{
+    stops:[[0,'#FFCDD2'],[.28,'#F48FB1'],[.55,'#E91E63'],[.80,'#C2185B'],[1,'#880E4F']],
+    vein:'rgba(180,0,80,.1)',glow:true,spots:false,
+    flush:{col:'#AD1457',r:.18}
+  },
+  sunflower:{
+    stops:[[0,'#FFEE58'],[.28,'#FDD835'],[.58,'#F9A825'],[.82,'#F57F17'],[1,'#BF360C']],
+    vein:'rgba(80,30,0,.18)',glow:false,spots:false,
+    flush:{col:'#4E342E',r:.18}
+  }
+};
+
+function genPetalTex(key, idx){
+  const cfg=PETAL_CFG[key], W=256, H=512;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  const rng=sRng(idx*137+key.charCodeAt(0)*31);
+
+  // 1. Base gradient (tip=canvas-top→base=canvas-bottom, with flipY the UV base→tip maps to stop1→stop0)
+  const gr=ctx.createLinearGradient(W/2,0,W/2,H);
+  cfg.stops.forEach(([p,c])=>gr.addColorStop(p,c));
+  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+
+  // 2. Red/dark center flush
+  if(cfg.flush){
+    const cf=ctx.createRadialGradient(W/2,H,0,W/2,H,H*cfg.flush.r*2.5);
+    cf.addColorStop(0,cfg.flush.col+'BB'); cf.addColorStop(1,cfg.flush.col+'00');
+    ctx.fillStyle=cf; ctx.fillRect(0,0,W,H);
+  }
+
+  // 3. Midrib highlight
+  const mr=ctx.createLinearGradient(W/2-7,H,W/2+7,0);
+  mr.addColorStop(0,'rgba(255,255,255,0)');
+  mr.addColorStop(.35,'rgba(255,255,255,.2)');
+  mr.addColorStop(.7,'rgba(255,255,255,.1)');
+  mr.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=mr; ctx.fillRect(W/2-7,0,14,H);
+
+  // 4. Side veins
+  ctx.strokeStyle=cfg.vein; ctx.lineWidth=.8;
+  for(let i=0;i<10;i++){
+    const frac=.08+i*.09, y=H*(1-frac), sp=W*.2*(frac+.15), curl=(rng()-.5)*5;
+    for(const dir of[-1,1]){
+      ctx.beginPath(); ctx.moveTo(W/2,y);
+      ctx.quadraticCurveTo(W/2+dir*sp*.5+curl,y-H*.035,W/2+dir*sp,y-H*.015);
+      ctx.stroke();
+    }
+  }
+
+  // 5. Edge shadow
+  const eg=ctx.createRadialGradient(W/2,H/2,W*.28,W/2,H/2,W*.72);
+  eg.addColorStop(0,'rgba(0,0,0,0)'); eg.addColorStop(1,'rgba(0,0,0,.14)');
+  ctx.fillStyle=eg; ctx.fillRect(0,0,W,H);
+
+  // 6. Surface gloss
+  if(cfg.glow){
+    ctx.globalCompositeOperation='screen';
+    const hl=ctx.createRadialGradient(W*.36,H*.2,2,W*.36,H*.2,W*.52);
+    hl.addColorStop(0,'rgba(255,255,255,.42)');
+    hl.addColorStop(.45,'rgba(255,255,255,.12)');
+    hl.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=hl; ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='source-over';
+  }
+
+  // 7. Spots (lily/azalea)
+  if(cfg.spots){
+    ctx.fillStyle=cfg.spotCol;
+    const [sy0,sy1]=cfg.spotY, n=key==='lily'?24:18;
+    for(let i=0;i<n;i++){
+      const sx=W*(.22+rng()*.56), sy=H*(sy0+rng()*(sy1-sy0));
+      ctx.beginPath(); ctx.ellipse(sx,sy,2+rng()*4,1.5+rng()*3,rng()*Math.PI,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  // 8. Photographic grain noise
+  const id=ctx.getImageData(0,0,W,H), da=id.data, nr=sRng(idx*997+13);
+  for(let i=0;i<da.length;i+=4){
+    const n=(nr()-.5)*22;
+    da[i]=clamp255(da[i]+n); da[i+1]=clamp255(da[i+1]+n*.9); da[i+2]=clamp255(da[i+2]+n*.8);
+  }
+  ctx.putImageData(id,0,0);
+  const tex=new THREE.CanvasTexture(cv); tex.colorSpace=THREE.SRGBColorSpace; return tex;
+}
+
+function genSepalTex(){
+  const W=128,H=256,cv=document.createElement('canvas');
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  const gr=ctx.createLinearGradient(W/2,H,W/2,0);
+  gr.addColorStop(0,'#1B5E20'); gr.addColorStop(.4,'#2E7D32');
+  gr.addColorStop(.8,'#43A047'); gr.addColorStop(1,'#66BB6A');
+  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+  // midrib
+  const mr=ctx.createLinearGradient(W/2-4,H,W/2+4,0);
+  mr.addColorStop(0,'rgba(255,255,255,0)'); mr.addColorStop(.5,'rgba(255,255,255,.22)'); mr.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=mr; ctx.fillRect(W/2-4,0,8,H);
+  // waxy gloss
+  ctx.globalCompositeOperation='screen';
+  const hl=ctx.createRadialGradient(W*.35,H*.25,1,W*.35,H*.25,W*.45);
+  hl.addColorStop(0,'rgba(255,255,255,.3)'); hl.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=hl; ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='source-over';
+  const id=ctx.getImageData(0,0,W,H),da=id.data,rng=sRng(42);
+  for(let i=0;i<da.length;i+=4){ const n=(rng()-.5)*14; da[i]=clamp255(da[i]+n); da[i+1]=clamp255(da[i+1]+n); da[i+2]=clamp255(da[i+2]+n*.6); }
+  ctx.putImageData(id,0,0);
+  const st=new THREE.CanvasTexture(cv); st.colorSpace=THREE.SRGBColorSpace; return st;
+}
+
+function genDiskTex(key){
+  const W=512,H=512,cv=document.createElement('canvas');
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  if(key==='sunflower'){
+    // Dark brown base
+    ctx.fillStyle='#3E2723'; ctx.fillRect(0,0,W,H);
+    // Fibonacci floret spiral
+    const phi=(1+Math.sqrt(5))/2, N=500, rng=sRng(7);
+    for(let i=0;i<N;i++){
+      const angle=i*2*Math.PI/phi, rad=Math.sqrt(i/N)*W*.465;
+      const x=W/2+Math.cos(angle)*rad, y=H/2+Math.sin(angle)*rad;
+      const sz=3.5+rng()*3;
+      // outer ring of floret
+      ctx.fillStyle=['#4E342E','#5D4037','#6D4C41'][i%3];
+      ctx.beginPath(); ctx.arc(x,y,sz,0,Math.PI*2); ctx.fill();
+      // yellow pollen dot center
+      ctx.fillStyle=i%2===0?'#FDD835':'#F9A825';
+      ctx.beginPath(); ctx.arc(x,y,sz*.38,0,Math.PI*2); ctx.fill();
+    }
+  } else { // cosmos
+    ctx.fillStyle='#F57F17'; ctx.fillRect(0,0,W,H);
+    const rng=sRng(13);
+    for(let i=0;i<200;i++){
+      const a=rng()*Math.PI*2, r=rng()*W*.44;
+      const x=W/2+Math.cos(a)*r, y=H/2+Math.sin(a)*r, sz=4+rng()*6;
+      ctx.fillStyle=['#FF8F00','#FFA000','#FFB300','#F57F17'][i%4];
+      ctx.beginPath(); ctx.arc(x,y,sz,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#FFEE58';
+      ctx.beginPath(); ctx.arc(x,y,sz*.35,0,Math.PI*2); ctx.fill();
+    }
+  }
+  // surface highlight
+  ctx.globalCompositeOperation='screen';
+  const hl=ctx.createRadialGradient(W*.38,H*.3,5,W*.38,H*.3,W*.42);
+  hl.addColorStop(0,'rgba(255,255,255,.22)'); hl.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=hl; ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='source-over';
+  const t1=new THREE.CanvasTexture(cv); t1.colorSpace=THREE.SRGBColorSpace; return t1;
+}
+
+function genGroundTex(){
+  const W=512,H=512,cv=document.createElement('canvas');
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d'), rng=sRng(77);
+  ctx.fillStyle='#558B2F'; ctx.fillRect(0,0,W,H);
+  for(let i=0;i<1200;i++){
+    const x=rng()*W, y=rng()*H, r=1+rng()*3;
+    ctx.fillStyle=`rgba(${Math.floor(30+rng()*60)},${Math.floor(100+rng()*80)},${Math.floor(20+rng()*40)},.6)`;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  }
+  const t2=new THREE.CanvasTexture(cv); t2.colorSpace=THREE.SRGBColorSpace; return t2;
+}
+
+function genStemTex(){
+  const W=64,H=256,cv=document.createElement('canvas');
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d'),rng=sRng(55);
+  const gr=ctx.createLinearGradient(0,H,0,0);
+  gr.addColorStop(0,'#1B5E20'); gr.addColorStop(.5,'#2E7D32'); gr.addColorStop(1,'#388E3C');
+  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+  const hl=ctx.createLinearGradient(0,0,W,0);
+  hl.addColorStop(0,'rgba(0,0,0,.15)'); hl.addColorStop(.35,'rgba(255,255,255,.2)'); hl.addColorStop(1,'rgba(0,0,0,.1)');
+  ctx.fillStyle=hl; ctx.fillRect(0,0,W,H);
+  const t3=new THREE.CanvasTexture(cv); t3.colorSpace=THREE.SRGBColorSpace; return t3;
+}
+
+// Pre-generate textures (keyed)
+const TEX_CACHE = {};
+function getPetalTex(key, idx){ const k=`${key}_${idx%3}`; if(!TEX_CACHE[k]) TEX_CACHE[k]=genPetalTex(key,idx); return TEX_CACHE[k]; }
+const SEPAL_TEX = genSepalTex();
+const GROUND_TEX = genGroundTex();
+const STEM_TEX = genStemTex();
+
+// ── BEND GEOMETRY ──
+function bendPetal(geo, bend){
+  const pos=geo.attributes.position;
+  let minY=Infinity,maxY=-Infinity;
+  for(let i=0;i<pos.count;i++){ const y=pos.getY(i); if(y<minY)minY=y; if(y>maxY)maxY=y; }
+  const h=maxY-minY||1;
+  for(let i=0;i<pos.count;i++){
+    const t=(pos.getY(i)-minY)/h;
+    pos.setZ(i,pos.getZ(i)+Math.pow(t,1.6)*bend);
+  }
+  pos.needsUpdate=true; geo.computeVertexNormals();
+}
+
+function initThree(){
+  const wrap = document.getElementById('canvas-wrap');
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xD4EDDA);
+  scene.fog = new THREE.FogExp2(0xD4EDDA, 0.038);
+  camera = new THREE.PerspectiveCamera(42, wrap.clientWidth/wrap.clientHeight, 0.1, 100);
+  camera.position.set(0, 2.8, 9.5);
+
+  renderer = new THREE.WebGLRenderer({antialias:true, alpha:false});
+  renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ReinhardToneMapping;
+  renderer.toneMappingExposure = 1.35;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  wrap.appendChild(renderer.domElement);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.06;
+  controls.minDistance = 3; controls.maxDistance = 18;
+  controls.target.set(0, 0.5, 0);
+
+  // Photorealistic lighting
+  scene.add(new THREE.AmbientLight(0xFFF5F0, 0.85));
+  const sun = new THREE.DirectionalLight(0xFFF8E7, 1.2);
+  sun.position.set(6,14,8); sun.castShadow=true;
+  sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.near=0.5; sun.shadow.camera.far=50;
+  scene.add(sun);
+  const skyFill = new THREE.DirectionalLight(0xC8E6FF, 0.52);
+  skyFill.position.set(-7,5,3); scene.add(skyFill);
+  const rimLight = new THREE.DirectionalLight(0xFFE0D0, 0.22);
+  rimLight.position.set(0,2,-8); scene.add(rimLight);
+
+  // Ground
+  GROUND_TEX.wrapS=GROUND_TEX.wrapT=THREE.RepeatWrapping; GROUND_TEX.repeat.set(2,2);
+  const gGeo=new THREE.CylinderGeometry(3.2,3.2,0.18,48);
+  const gMat=new THREE.MeshStandardMaterial({map:GROUND_TEX,roughness:.9,metalness:0});
+  const gnd=new THREE.Mesh(gGeo,gMat); gnd.position.y=-3.65; gnd.receiveShadow=true; scene.add(gnd);
+
+  // Stem
+  STEM_TEX.wrapS=STEM_TEX.wrapT=THREE.RepeatWrapping; STEM_TEX.repeat.set(1,3);
+  const stemGeo=new THREE.CylinderGeometry(0.07,0.13,3.3,12);
+  const stemMat=new THREE.MeshStandardMaterial({map:STEM_TEX,roughness:.75,metalness:0});
+  const stem=new THREE.Mesh(stemGeo,stemMat); stem.position.y=-2.1; stem.castShadow=true; scene.add(stem);
+
+  // Leaves
+  function makeLeaf(x,y,rz,flip){
+    const ls=new THREE.Shape();
+    ls.moveTo(0,0); ls.bezierCurveTo(-.12,.4,-.3,.9,0,1.45); ls.bezierCurveTo(.3,.9,.12,.4,0,0);
+    const lg=new THREE.ShapeGeometry(ls,8);
+    const lm=new THREE.MeshStandardMaterial({map:SEPAL_TEX,side:THREE.DoubleSide,roughness:.7});
+    const lf=new THREE.Mesh(lg,lm); lf.position.set(x,y,0); lf.rotation.z=rz;
+    if(flip) lf.rotation.y=Math.PI;
+    lf.castShadow=true; scene.add(lf);
+  }
+  makeLeaf(.28,-1.4,-.55,false); makeLeaf(-.28,-2.0,.55,true);
+
+  raycaster=new THREE.Raycaster();
+  mouse=new THREE.Vector2();
+  renderer.domElement.addEventListener('click', onClick);
+  renderer.domElement.addEventListener('mousemove', onHover);
+  window.addEventListener('resize', onResize);
+
+  threeReady = true;
+  loadFlower('mugunghwa');
+  updatePhotoStrip('mugunghwa');
+  animate();
+}
+
+// ── GEOMETRY HELPERS ──
+function petalShape(w,h,type){
+  const s = new THREE.Shape();
+  s.moveTo(0,0);
+  if(type==='round'){
+    s.bezierCurveTo(-w*.55,h*.18,-w*.65,h*.65,0,h);
+    s.bezierCurveTo(w*.65,h*.65,w*.55,h*.18,0,0);
+  } else if(type==='wide'){
+    s.bezierCurveTo(-w*.65,h*.12,-w*.75,h*.55,0,h);
+    s.bezierCurveTo(w*.75,h*.55,w*.65,h*.12,0,0);
+  } else if(type==='elongated'){
+    s.bezierCurveTo(-w*.4,h*.08,-w*.5,h*.55,0,h);
+    s.bezierCurveTo(w*.5,h*.55,w*.4,h*.08,0,0);
+  } else {
+    s.bezierCurveTo(-w*.38,h*.1,-w*.4,h*.5,0,h);
+    s.bezierCurveTo(w*.4,h*.5,w*.38,h*.1,0,0);
+  }
+  return s;
+}
+
+const PETAL_BEND = {mugunghwa:-.3,lily:.55,azalea:-.18,cosmos:.08,sunflower:.12};
+
+function makePetalMesh(key, idx){
+  const d=FLOWERS[key];
+  const ext={depth:.032,bevelEnabled:true,bevelThickness:.02,bevelSize:.02,bevelSegments:3,steps:3};
+  const geo=new THREE.ExtrudeGeometry(petalShape(d.petalW,d.petalH,d.shape),ext);
+  bendPetal(geo, PETAL_BEND[key]||0);
+  const tex=getPetalTex(key,idx);
+  const mat=new THREE.MeshPhysicalMaterial({
+    map:tex, side:THREE.DoubleSide,
+    roughness: key==='mugunghwa'||key==='lily' ? .4 : .65,
+    metalness:0,
+  });
+  const m=new THREE.Mesh(geo,mat); m.castShadow=true;
+  return m;
+}
+
+function makeSepal(w,h){
+  const s=new THREE.Shape();
+  s.moveTo(0,0); s.bezierCurveTo(-w*.4,h*.2,-w*.3,h*.7,0,h);
+  s.bezierCurveTo(w*.3,h*.7,w*.4,h*.2,0,0);
+  const geo=new THREE.ShapeGeometry(s,6);
+  const mat=new THREE.MeshStandardMaterial({map:SEPAL_TEX,side:THREE.DoubleSide,roughness:.72});
+  return new THREE.Mesh(geo,mat);
+}
+
+// ── BUILD FLOWER ──
+function buildFlower(key){
+  const d=FLOWERS[key];
+  const g=new THREE.Group(); g.userData.floKey=key;
+
+  // SEPALS
+  if(d.sepals>0){
+    const sg=new THREE.Group(); sg.userData={partType:'sepal'};
+    for(let i=0;i<d.sepals;i++){
+      const a=(i/d.sepals)*Math.PI*2;
+      const piv=new THREE.Group(); piv.rotation.y=a;
+      const sm=makeSepal(.22,.65);
+      sm.rotation.x=(Math.PI/2-.28); sm.position.set(0,-.1,.14);
+      piv.add(sm); sg.add(piv);
+    }
+    g.add(sg);
+  }
+
+  // PETALS — each with its own photorealistic texture
+  const pg=new THREE.Group(); pg.userData={partType:'petal'};
+  const tilt=Math.PI/2-d.spread*(Math.PI/2);
+  for(let i=0;i<d.petals;i++){
+    const a=(i/d.petals)*Math.PI*2;
+    const piv=new THREE.Group(); piv.rotation.y=a;
+    const pm=makePetalMesh(key,i);
+    pm.rotation.x=tilt; pm.position.set(0,0,.12);
+    piv.add(pm); pg.add(piv);
+  }
+  g.add(pg);
+
+  // DISK (cosmos/sunflower) — with photo-quality texture
+  if(d.diskCol!=null){
+    const dg=new THREE.Group(); dg.userData={partType:'stamen'};
+    const dTex=genDiskTex(key);
+    const dGeo=new THREE.CylinderGeometry(d.diskR,d.diskR,.22,48);
+    const dMat=new THREE.MeshStandardMaterial({map:dTex,roughness:.82,metalness:0});
+    const disk=new THREE.Mesh(dGeo,dMat); disk.position.y=.1; disk.castShadow=true;
+    dg.add(disk);
+    g.add(dg);
+  }
+
+  // STAMENS
+  if(d.stamenType!=='disk'){
+    const ssg=new THREE.Group(); ssg.userData={partType:'stamen'};
+    const filMat=new THREE.MeshStandardMaterial({color:0xFFFDE7,roughness:.55});
+    const antherMat=new THREE.MeshStandardMaterial({color:d.stamenCol,roughness:.4,metalness:.05});
+    if(d.stamenType==='column'){
+      const colTex=genSepalTex(); // reuse green-ish, override color via color tint
+      const colMat=new THREE.MeshStandardMaterial({color:0xFFF9C4,roughness:.5});
+      const col2=new THREE.Mesh(new THREE.CylinderGeometry(.12,.09,d.stamenH,14),colMat);
+      col2.position.y=d.stamenH/2+.1; ssg.add(col2);
+      for(let i=0;i<22;i++){
+        const a=(i/22)*Math.PI*2;
+        const an=new THREE.Mesh(new THREE.SphereGeometry(.058,7,5),antherMat);
+        an.position.set(Math.sin(a)*.18,d.stamenH+.15,Math.cos(a)*.18);
+        ssg.add(an);
+      }
+    } else {
+      const rng=sRng(key.charCodeAt(0)*7);
+      for(let i=0;i<d.stamens;i++){
+        const a=(i/d.stamens)*Math.PI*2;
+        const r=rng()*.15+d.stamenR*.5;
+        const fh=d.stamenH*.8+rng()*.3;
+        const sx=d.stamenType==='spread'?Math.sin(a)*(r+.15):Math.sin(a)*r;
+        const sz=d.stamenType==='spread'?Math.cos(a)*(r+.15):Math.cos(a)*r;
+        const fil=new THREE.Mesh(new THREE.CylinderGeometry(.016,.016,fh,5),filMat);
+        fil.position.set(sx,fh/2+.08,sz); ssg.add(fil);
+        const an=new THREE.Mesh(new THREE.SphereGeometry(.058,7,5),antherMat);
+        an.position.set(sx,fh+.12,sz); ssg.add(an);
+      }
+    }
+    g.add(ssg);
+  }
+
+  // PISTIL
+  const pisg=new THREE.Group(); pisg.userData={partType:'pistil'};
+  const pMat=new THREE.MeshStandardMaterial({color:d.pistilCol,roughness:.45,metalness:.05});
+  const stMat=new THREE.MeshStandardMaterial({color:d.stigmaCol,roughness:.35,metalness:.08});
+  const pstem=new THREE.Mesh(new THREE.CylinderGeometry(.042,.042,d.pistilH,8),pMat);
+  pstem.position.y=d.pistilH/2+.12; pisg.add(pstem);
+  const st=new THREE.Mesh(new THREE.SphereGeometry(.11,10,8),stMat);
+  st.position.y=d.pistilH+.19; pisg.add(st);
+  if(d.stigmaLobes){
+    for(let i=0;i<3;i++){
+      const la=(i/3)*Math.PI*2;
+      const lob=new THREE.Mesh(new THREE.SphereGeometry(.075,7,6),new THREE.MeshStandardMaterial({color:0x81C784,roughness:.5}));
+      lob.position.set(Math.sin(la)*.14,d.pistilH+.2,Math.cos(la)*.14);
+      pisg.add(lob);
+    }
+  }
+  g.add(pisg);
+
+  return g;
+}
+
+// ── EXPLORER: 절차적 꽃 로드 ──
+function loadFlower(key){
+  document.getElementById('loading-ov').style.display='flex';
+  if(flowerGroup){ scene.remove(flowerGroup); flowerGroup=null; }
+  removed=[]; anims=[];
+  setTimeout(()=>{
+    flowerGroup=buildFlower(key);
+    scene.add(flowerGroup);
+    document.getElementById('loading-ov').style.display='none';
+    updatePanel(key);
+  },200);
+}
+
+// ── VIEWER: GLB 모델 관찰 ──
+const gltfLoader = new GLTFLoader();
+const GLB_FILES = {
+  mugunghwa: 'https://raw.githubusercontent.com/Jeong1985/flower-science/main/hibiscus_flower.glb',
+  lily:      'https://raw.githubusercontent.com/Jeong1985/flower-science/main/lily.glb',
+  azalea:    'https://raw.githubusercontent.com/Jeong1985/flower-science/main/azalea.glb',
+  cosmos:    'https://raw.githubusercontent.com/Jeong1985/flower-science/main/cosmos.glb',
+  sunflower: 'https://raw.githubusercontent.com/Jeong1985/flower-science/main/sunflower.glb',
+};
+const GLB_ROTATION = {};
+
+let vRenderer, vScene, vCamera, vControls, vModel, vReady=false, vRAF=null;
+
+function initViewer(){
+  const wrap = document.getElementById('viewer-wrap');
+  vRenderer = new THREE.WebGLRenderer({antialias:true});
+  vRenderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  vRenderer.setSize(wrap.clientWidth, wrap.clientHeight);
+  vRenderer.outputColorSpace = THREE.SRGBColorSpace;
+  vRenderer.toneMapping = THREE.ReinhardToneMapping;
+  vRenderer.toneMappingExposure = 1.2;
+  vRenderer.shadowMap.enabled = true;
+  wrap.appendChild(vRenderer.domElement);
+
+  vScene = new THREE.Scene();
+  vScene.background = new THREE.Color(0x1a1a2e);
+  vScene.fog = new THREE.FogExp2(0x1a1a2e, 0.025);
+
+  vCamera = new THREE.PerspectiveCamera(45, wrap.clientWidth/wrap.clientHeight, 0.01, 200);
+  vCamera.position.set(0, 2, 7);
+
+  vControls = new OrbitControls(vCamera, vRenderer.domElement);
+  vControls.enableDamping=true; vControls.dampingFactor=0.06;
+  vControls.minDistance=1; vControls.maxDistance=30;
+
+  // 조명
+  vScene.add(new THREE.AmbientLight(0xfff5f0, 0.9));
+  const sun=new THREE.DirectionalLight(0xfff8e7,2.0); sun.position.set(5,10,8); sun.castShadow=true; vScene.add(sun);
+  const fill=new THREE.DirectionalLight(0xc8e6ff,0.6); fill.position.set(-6,4,3); vScene.add(fill);
+  const rim=new THREE.DirectionalLight(0xffe0d0,0.3); rim.position.set(0,2,-8); vScene.add(rim);
+
+  window.addEventListener('resize', ()=>{
+    if(!vReady) return;
+    const w=wrap.clientWidth, h=wrap.clientHeight;
+    vCamera.aspect=w/h; vCamera.updateProjectionMatrix();
+    vRenderer.setSize(w,h);
+  });
+
+  vReady=true;
+  animateViewer();
+}
+
+function animateViewer(){
+  vRAF=requestAnimationFrame(animateViewer);
+  vControls.update();
+  if(vModel) vModel.rotation.y+=.003;
+  vRenderer.render(vScene, vCamera);
+}
+
+function loadViewerModel(key){
+  document.getElementById('viewer-loading').style.display='flex';
+  if(vModel){ vScene.remove(vModel); vModel=null; }
+
+  gltfLoader.load(GLB_FILES[key], (gltf)=>{
+    vModel=gltf.scene;
+    // 모델별 회전 보정
+    if(GLB_ROTATION[key]){
+      const r=GLB_ROTATION[key];
+      vModel.rotation.set(r.x, r.y, r.z);
+    }
+    // 기즈모/헬퍼 오브젝트 제거
+    const GIZMO_RE = /gizmo|helper|axis|indicator|cube|grid|widget|icon|tool/i;
+    vModel.traverse(n=>{
+      if(GIZMO_RE.test(n.name)) n.visible=false;
+      if(n.isMesh){ n.castShadow=true; n.receiveShadow=true; }
+    });
+
+    const box=new THREE.Box3().setFromObject(vModel);
+    const size=box.getSize(new THREE.Vector3());
+    const scale=4/Math.max(size.x,size.y,size.z);
+    vModel.scale.setScalar(scale);
+    vModel.updateMatrixWorld(true);
+    const box2=new THREE.Box3().setFromObject(vModel);
+    const center=box2.getCenter(new THREE.Vector3());
+    vModel.position.sub(center);
+
+    vCamera.position.set(0, 2, 7);
+    vControls.target.set(0,0,0);
+    vControls.update();
+
+    vScene.add(vModel);
+    document.getElementById('viewer-loading').style.display='none';
+  }, undefined, ()=>{
+    document.getElementById('viewer-loading').style.display='none';
+  });
+}
+
+window.selectViewer = function(key){
+  document.querySelectorAll('.vlo-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-vlo="${key}"]`).classList.add('active');
+  loadViewerModel(key);
+};
+
+// ── INTERACTION ──
+function findPartGroup(mesh){
+  let o=mesh;
+  while(o && o!==flowerGroup){
+    if(o.userData.partType) return o;
+    o=o.parent;
+  }
+  return null;
+}
+
+function onClick(e){
+  if(!flowerGroup) return;
+  const wrap=document.getElementById('canvas-wrap');
+  const r=wrap.getBoundingClientRect();
+  mouse.x=((e.clientX-r.left)/r.width)*2-1;
+  mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  const meshes=[];
+  flowerGroup.traverse(o=>{ if(o.isMesh) meshes.push(o); });
+  const hits=raycaster.intersectObjects(meshes);
+  if(!hits.length) return;
+  const pg=findPartGroup(hits[0].object);
+  if(pg && !pg.userData.removed) detach(pg);
+}
+
+function onHover(e){
+  if(!flowerGroup) return;
+  const wrap=document.getElementById('canvas-wrap');
+  const r=wrap.getBoundingClientRect();
+  mouse.x=((e.clientX-r.left)/r.width)*2-1;
+  mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  const meshes=[];
+  flowerGroup.traverse(o=>{ if(o.isMesh && !o.userData.removed && !findPartGroup(o)?.userData.removed) meshes.push(o); });
+  const hits=raycaster.intersectObjects(meshes);
+  const tip=document.getElementById('tooltip3d');
+  if(hits.length){
+    const pg=findPartGroup(hits[0].object);
+    if(pg){
+      const names={petal:'꽃잎',sepal:'꽃받침',stamen:'수술/관상화',pistil:'암술'};
+      tip.style.opacity='1';
+      tip.style.left=(e.clientX-r.left+14)+'px';
+      tip.style.top=(e.clientY-r.top-12)+'px';
+      tip.textContent=`클릭: ${names[pg.userData.partType]} 분리하기`;
+      renderer.domElement.style.cursor='pointer';
+    }
+  } else {
+    tip.style.opacity='0';
+    renderer.domElement.style.cursor='default';
+  }
+}
+
+function detach(pg){
+  pg.userData.removed=true;
+  removed.push(pg.userData.partType);
+  const tx=(Math.random()-.5)*7, ty=5+Math.random()*2, tz=(Math.random()-.5)*3-1;
+  anims.push({pg, start:pg.position.clone(), end:new THREE.Vector3(tx,ty,tz), t:0, speed:.018+Math.random()*.01});
+  updatePanel(flowerGroup?.userData.floKey);
+}
+
+// ── PANEL ──
+function updatePanel(key){
+  if(!key) return;
+  const d=FLOWERS[key];
+  document.getElementById('sp-flower-name').textContent=`${d.emoji} ${d.name}`;
+  document.getElementById('sp-info').innerHTML=`<h3>${d.name} <small style="font-weight:400;color:#558B2F">${d.sci}</small></h3><p>${d.info}</p>`;
+  document.getElementById('parts-list').innerHTML=d.parts.map(p=>{
+    const gone=removed.includes(p.type);
+    return `<div class="part-row${gone?' gone':''}">
+      <div class="part-icon" style="background:${p.bg}">${p.icon}</div>
+      <div><h4>${p.name}</h4><p>${p.desc}</p></div>
+      ${gone?'<span class="gone-badge">분리됨</span>':''}
+    </div>`;
+  }).join('');
+}
+
+window.resetFlower = function(){
+  if(flowerGroup) loadFlower(flowerGroup.userData.floKey);
+};
+
+window.selectFlower = function(key){
+  document.querySelectorAll('.flo-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-flo="${key}"]`).classList.add('active');
+  loadFlower(key);
+  updatePhotoStrip(key);
+};
+
+// ── REAL PHOTOS ──
+const FP = 'https://commons.wikimedia.org/wiki/Special:FilePath/';
+const FLOWER_PHOTOS = {
+  mugunghwa:[
+    {url:FP+'Hibiscus_syriacus_(12).JPG', caption:'무궁화 (Hibiscus syriacus)'},
+    {url:FP+'Hibiscus_Syriacus.JPG', caption:'무궁화 꽃 클로즈업'},
+    {url:FP+'Hibiscus_syriacus_9961.JPG', caption:'무궁화 – 우리나라 국화'},
+  ],
+  lily:[
+    {url:FP+'01-Lilium_candidum-Madonna_lily.JPG', caption:'마돈나 백합 (Lilium candidum)'},
+    {url:FP+'Lilium_%27Marco_Polo%27_Flower_2580px.jpg', caption:'백합 (Marco Polo)'},
+    {url:FP+'Coral_lily_(Lilium_pumilum)_flowers.jpg', caption:'산호 백합 (Lilium pumilum)'},
+  ],
+  azalea:[
+    {url:FP+'Azalea.jpg', caption:'철쭉 꽃'},
+    {url:FP+'Rhododendron_prinophyllum_(Roseshell_Azalea)_(27254491900).jpg', caption:'분홍 철쭉'},
+    {url:FP+'Rhododendron_schlippenbachii.jpg', caption:'왕철쭉 (Rhododendron schlippenbachii)'},
+  ],
+  cosmos:[
+    {url:FP+'Cosmea_(Cosmos_bipinnatus)_01.JPG', caption:'코스모스 (Cosmos bipinnatus)'},
+    {url:FP+'Cosmea_(Cosmos_bipinnatus)_02.JPG', caption:'코스모스 꽃 클로즈업'},
+    {url:FP+'CosmosBipinnatus002.JPG', caption:'가을 코스모스'},
+  ],
+  sunflower:[
+    {url:FP+'Sonnenblume_Helianthus_1.JPG', caption:'해바라기 (Helianthus annuus)'},
+    {url:FP+'Helianthus_annuus_0001.JPG', caption:'해바라기 꽃'},
+    {url:FP+'Sunflower_from_Silesia2.jpg', caption:'활짝 핀 해바라기'},
+  ],
+};
+
+function updatePhotoStrip(key){
+  const strip = document.getElementById('photo-strip');
+  strip.innerHTML = FLOWER_PHOTOS[key].map((p,i) => `
+    <div class="photo-item" onclick="openPhotoModal('${p.url.replace(/'/g,"\\'")}')">
+      <img src="${p.url}" alt="${p.caption}" loading="lazy"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="photo-err">🌸</div>
+    </div>
+  `).join('');
+}
+
+window.openPhotoModal = function(url){
+  document.getElementById('photo-modal-img').src = url;
+  document.getElementById('photo-modal').classList.add('open');
+};
+window.closePhotoModal = function(){
+  document.getElementById('photo-modal').classList.remove('open');
+  document.getElementById('photo-modal-img').src = '';
+};
+
+// ── ANIMATE ──
+function ease(t){ return t<.5?2*t*t:-1+(4-2*t)*t; }
+
+function animate(){
+  requestAnimationFrame(animate);
+  controls.update();
+  if(flowerGroup && anims.length===0) flowerGroup.rotation.y+=.004;
+  for(let i=anims.length-1;i>=0;i--){
+    const a=anims[i]; a.t=Math.min(1,a.t+a.speed);
+    const et=ease(a.t);
+    a.pg.position.lerpVectors(a.start,a.end,et);
+    a.pg.rotation.x+=.04; a.pg.rotation.z+=.025;
+    a.pg.traverse(m=>{ if(m.isMesh&&m.material){
+      if(Array.isArray(m.material)) m.material.forEach(mat=>{mat.transparent=true;mat.opacity=1-et;});
+      else { m.material.transparent=true; m.material.opacity=1-et; }
+    }});
+    if(a.t>=1){ a.pg.visible=false; anims.splice(i,1); }
+  }
+  renderer.render(scene,camera);
+}
+
+function onResize(){
+  const wrap=document.getElementById('canvas-wrap');
+  if(!wrap||!renderer) return;
+  camera.aspect=wrap.clientWidth/wrap.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(wrap.clientWidth,wrap.clientHeight);
+}
+</script>
+</body>
+</body>
+</html>
